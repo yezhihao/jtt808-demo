@@ -4,7 +4,8 @@ import io.github.yezhihao.netmc.session.Session;
 import org.yzh.protocol.t808.T0200;
 
 /**
- * Created by Alan.ye on 2017/5/20.
+ * @author yezhihao
+ * https://gitee.com/yezhihao/jt808-server
  */
 public enum SessionKey {
 

@@ -1,50 +1,57 @@
 package org.yzh.protocol.codec;
 
-import io.github.yezhihao.netmc.session.Session;
-import io.github.yezhihao.protostar.ProtostarUtil;
 import io.github.yezhihao.protostar.Schema;
+import io.github.yezhihao.protostar.SchemaManager;
 import io.github.yezhihao.protostar.schema.RuntimeSchema;
+import io.github.yezhihao.protostar.util.ArrayMap;
+import io.github.yezhihao.protostar.util.Explain;
 import io.netty.buffer.*;
 import io.netty.util.ByteProcessor;
 import org.yzh.protocol.basics.JTMessage;
 import org.yzh.protocol.commons.JTUtils;
 
 import java.util.LinkedList;
-import java.util.Map;
 
 /**
  * JT协议编码器
  * @author yezhihao
- * @home https://gitee.com/yezhihao/jt808-server
+ * https://gitee.com/yezhihao/jt808-server
  */
 public class JTMessageEncoder {
 
     private static final ByteBufAllocator ALLOC = PooledByteBufAllocator.DEFAULT;
 
-    private Map<Integer, RuntimeSchema<JTMessage>> headerSchemaMap;
+    private final SchemaManager schemaManager;
 
-    public JTMessageEncoder(String basePackage) {
-        ProtostarUtil.initial(basePackage);
-        this.headerSchemaMap = ProtostarUtil.getRuntimeSchema(JTMessage.class);
+    private final ArrayMap<RuntimeSchema> headerSchemaMap;
+
+    public JTMessageEncoder(String... basePackages) {
+        this.schemaManager = new SchemaManager(basePackages);
+        this.headerSchemaMap = schemaManager.getRuntimeSchema(JTMessage.class);
+    }
+
+    public JTMessageEncoder(SchemaManager schemaManager) {
+        this.schemaManager = schemaManager;
+        this.headerSchemaMap = schemaManager.getRuntimeSchema(JTMessage.class);
     }
 
     public ByteBuf encode(JTMessage message) {
         return encode(message, null);
     }
 
-    public ByteBuf encode(JTMessage message, Session session) {
+    public ByteBuf encode(JTMessage message, Explain explain) {
         int version = message.getProtocolVersion();
         int headLength = JTUtils.headerLength(version, false);
         int bodyLength = 0;
 
         Schema headSchema = headerSchemaMap.get(version);
-        Schema bodySchema = ProtostarUtil.getRuntimeSchema(message.getMessageId(), version);
+        Schema bodySchema = schemaManager.getRuntimeSchema(message.getMessageId(), version);
 
         ByteBuf output;
         if (bodySchema != null) {
             output = ALLOC.buffer(headLength + bodySchema.length());
             output.writerIndex(headLength);
-            bodySchema.writeTo(output, message);
+            bodySchema.writeTo(output, message, explain);
             bodyLength = output.writerIndex() - headLength;
         } else {
             output = ALLOC.buffer(headLength, 21);
@@ -56,10 +63,10 @@ public class JTMessageEncoder {
             int writerIndex = output.writerIndex();
             if (writerIndex > 0) {
                 output.writerIndex(0);
-                headSchema.writeTo(output, message);
+                headSchema.writeTo(output, message, explain);
                 output.writerIndex(writerIndex);
             } else {
-                headSchema.writeTo(output, message);
+                headSchema.writeTo(output, message, explain);
             }
 
             output = sign(output);
@@ -70,7 +77,7 @@ public class JTMessageEncoder {
             ByteBuf[] slices = slices(output, headLength, 1023);
             int total = slices.length;
 
-            CompositeByteBuf _allBuf = new CompositeByteBuf(UnpooledByteBufAllocator.DEFAULT, false, total);
+            CompositeByteBuf _allBuf = new CompositeByteBuf(ALLOC, false, total);
             output = _allBuf;
 
             message.setSubpackage(true);
@@ -84,8 +91,8 @@ public class JTMessageEncoder {
                 message.setBodyLength(slice.readableBytes());
 
                 ByteBuf headBuf = ALLOC.buffer(headLength, headLength);
-                headSchema.writeTo(headBuf, message);
-                ByteBuf msgBuf = new CompositeByteBuf(UnpooledByteBufAllocator.DEFAULT, false, 2)
+                headSchema.writeTo(headBuf, message, explain);
+                ByteBuf msgBuf = new CompositeByteBuf(ALLOC, false, 2)
                         .addComponent(true, 0, headBuf)
                         .addComponent(true, 1, slice);
                 msgBuf = sign(msgBuf);
@@ -112,7 +119,7 @@ public class JTMessageEncoder {
 
     /** 签名 */
     public static ByteBuf sign(ByteBuf buf) {
-        byte checkCode = JTUtils.bcc(buf);
+        byte checkCode = JTUtils.bcc(buf, 0);
         buf.writeByte(checkCode);
         return buf;
     }
@@ -145,7 +152,7 @@ public class JTMessageEncoder {
         bufList.addFirst(delimiter);
         bufList.addLast(delimiter);
 
-        CompositeByteBuf byteBufs = Unpooled.compositeBuffer(bufList.size());
+        CompositeByteBuf byteBufs = new CompositeByteBuf(ALLOC, false, bufList.size());
         byteBufs.addComponents(true, bufList);
         return byteBufs;
     }

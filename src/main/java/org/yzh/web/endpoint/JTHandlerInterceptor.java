@@ -73,7 +73,7 @@ public class JTHandlerInterceptor implements HandlerInterceptor<JTMessage> {
             session.setAttribute(SessionKey.Snapshot, request);
         }
         if (!session.isRegistered()) {
-            log.info("{}未注册的设备\n<<<<-{}", session, request);
+            log.info("{}未注册的设备<<<<-{}", session, request);
             return true;
         }
         return true;

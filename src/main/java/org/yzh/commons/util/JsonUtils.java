@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * @author yezhihao
- * @home https://gitee.com/yezhihao/jt808-server
+ * https://gitee.com/yezhihao/jt808-server
  */
 public class JsonUtils {
 

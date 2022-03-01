@@ -2,13 +2,18 @@ package org.yzh.commons.model;
 
 /**
  * @author yezhihao
- * @home https://gitee.com/yezhihao/jt808-server
+ * https://gitee.com/yezhihao/jt808-server
  */
 public class APIException extends RuntimeException {
 
     private int code;
     private String message;
     private String detailMessage;
+
+    public APIException(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
 
     public APIException(APICode code) {
         this.code = code.getCode();
@@ -47,10 +52,10 @@ public class APIException extends RuntimeException {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{\"");
-        sb.append("code\":").append(code);
-        sb.append(",\"message\":\"").append(super.getMessage());
-        sb.append("\"}");
+        sb.append('{');
+        sb.append("code:").append(code);
+        sb.append(",message:").append(super.getMessage());
+        sb.append('}');
         return sb.toString();
     }
 }

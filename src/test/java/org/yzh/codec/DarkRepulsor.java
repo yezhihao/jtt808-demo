@@ -1,34 +1,38 @@
 package org.yzh.codec;
 
-import io.github.yezhihao.protostar.FieldFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
-import org.yzh.protocol.BeanTest;
-import org.yzh.protocol.JT808Beans;
+import io.netty.buffer.Unpooled;
 import org.yzh.protocol.basics.JTMessage;
+import org.yzh.protocol.codec.JTMessageDecoder;
 import org.yzh.protocol.codec.JTMessageEncoder;
 
 /**
- * 编码分析
+ * 压力测试
  * @author yezhihao
- * @home https://gitee.com/yezhihao/jt808-server
+ * https://gitee.com/yezhihao/jt808-server
  */
 public class DarkRepulsor {
 
-    public static final JTMessageEncoder encoder;
+    private static JTMessageDecoder decoder = new JTMessageDecoder("org.yzh.protocol");
+    private static JTMessageEncoder encoder = new JTMessageEncoder("org.yzh.protocol");
 
-    static {
-        FieldFactory.EXPLAIN = true;
-        encoder = new JTMessageEncoder("org.yzh.protocol");
-    }
-
+    //560
     public static void main(String[] args) {
-        JTMessage message = JT808Beans.T0100();
-        BeanTest.H2013(message);
+        String hex = "7e0200407c0100000000017299841738ffff000004000000080006eeb6ad02633df701380003006320070719235901040000000b02020016030200210402002c051e3737370000000000000000000000000000000000000000000000000000001105420000004212064d0000004d4d1307000000580058582504000000632a02000a2b040000001430011e310128637e";
+        ByteBuf buf = Unpooled.wrappedBuffer(ByteBufUtil.decodeHexDump(hex));
 
-        ByteBuf byteBuf = encoder.encode(message);
-        System.out.println();
-        System.out.println(ByteBufUtil.hexDump(byteBuf));
-        System.out.println(message);
+        while (true) {
+            long s = System.currentTimeMillis();
+
+            for (int i = 0; i < 100000; i++) {
+                JTMessage message = decoder.decode(buf);
+                message.setSerialNo(message.getSerialNo() + 1);
+
+                buf.release();
+                buf = encoder.encode(message);
+            }
+            System.out.println(System.currentTimeMillis() - s);
+        }
     }
 }

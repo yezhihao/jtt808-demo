@@ -8,13 +8,10 @@ import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.yzh.commons.model.APIResult;
+import org.yzh.commons.util.LogUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -65,26 +62,8 @@ public class OtherController {
 
     @Operation(summary = "修改日志级别")
     @GetMapping("logger")
-    public String logger(@RequestParam(value = "value") Level level) {
-        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        Configuration config = ctx.getConfiguration();
-        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-        loggerConfig.setLevel(level.value);
-        ctx.updateLoggers();
+    public String logger(@RequestParam LogUtils.Lv level) {
+        LogUtils.setLevel(level.value);
         return "success";
-    }
-
-    public enum Level {
-        TRACE(org.apache.logging.log4j.Level.TRACE),
-        DEBUG(org.apache.logging.log4j.Level.DEBUG),
-        INFO(org.apache.logging.log4j.Level.INFO),
-        WARN(org.apache.logging.log4j.Level.WARN),
-        ERROR(org.apache.logging.log4j.Level.ERROR);
-
-        Level(org.apache.logging.log4j.Level value) {
-            this.value = value;
-        }
-
-        private org.apache.logging.log4j.Level value;
     }
 }

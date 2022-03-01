@@ -1,6 +1,7 @@
 package org.yzh.protocol;
 
-import org.yzh.protocol.commons.transform.AttributeId;
+import org.yzh.protocol.basics.JTMessage;
+import org.yzh.protocol.commons.transform.AttributeKey;
 import org.yzh.protocol.commons.transform.attribute.InOutAreaAlarm;
 import org.yzh.protocol.commons.transform.attribute.OverSpeedAlarm;
 import org.yzh.protocol.commons.transform.attribute.RouteDriveTimeAlarm;
@@ -13,12 +14,36 @@ import java.util.TreeMap;
 /**
  * JT/T 808协议单元测试数据
  * @author yezhihao
- * @home https://gitee.com/yezhihao/jt808-server
+ * https://gitee.com/yezhihao/jt808-server
  */
 public class JT808Beans {
 
-    private static final String DEVICE_ID = "09876543210987654321";
-    private static final String STR_TIME = "200707192359";
+    public static final String DEVICE_ID = "09876543210987654321";
+    public static final String STR_TIME = "200707192359";
+
+    /** 2013版消息头 */
+    public static <T extends JTMessage> T H2013(T message) {
+        int messageId = message.reflectMessageId();
+        if (messageId != 0) message.setMessageId(messageId);
+        message.setClientId("123456789012");
+        message.setSerialNo(Short.MAX_VALUE);
+        message.setEncryption(0);
+        message.setReserved(false);
+        return message;
+    }
+
+    /** 2019版消息头 */
+    public static <T extends JTMessage> T H2019(T message) {
+        int messageId = message.reflectMessageId();
+        if (messageId != 0) message.setMessageId(messageId);
+        message.setProtocolVersion(1);
+        message.setClientId("12345678901234567890");
+        message.setSerialNo(65535);
+        message.setEncryption(0);
+        message.setVersion(true);
+        message.setReserved(false);
+        return message;
+    }
 
     //终端通用应答|平台通用应答
     public static T0001 T0001() {
@@ -104,23 +129,23 @@ public class JT808Beans {
     //位置信息汇报
     public static T0200 T0200Attributes() {
         T0200 bean = T0200();
-        Map<Integer, Object> attributes = new TreeMap();
-        attributes.put(AttributeId.Mileage, 11L);
-        attributes.put(AttributeId.Gas, 22);
-        attributes.put(AttributeId.Speed, 33);
-        attributes.put(AttributeId.AlarmEventId, 44);
-        attributes.put(AttributeId.TirePressure, new TirePressure(new byte[]{55, 55, 55}));
-        attributes.put(AttributeId.CarriageTemperature, 2);
+        Map<Integer, Object> attributes = new TreeMap<>();
+        attributes.put(AttributeKey.Mileage, 11L);
+        attributes.put(AttributeKey.Gas, 22);
+        attributes.put(AttributeKey.Speed, 33);
+        attributes.put(AttributeKey.AlarmEventId, 44);
+        attributes.put(AttributeKey.TirePressure, new TirePressure(new byte[]{55, 55, 55}));
+        attributes.put(AttributeKey.CarriageTemperature, 2);
 
-        attributes.put(AttributeId.OverSpeedAlarm, new OverSpeedAlarm((byte) 66, 66));
-        attributes.put(AttributeId.InOutAreaAlarm, new InOutAreaAlarm((byte) 77, 77, (byte) 77));
-        attributes.put(AttributeId.RouteDriveTimeAlarm, new RouteDriveTimeAlarm(88, 88, (byte) 88));
+        attributes.put(AttributeKey.OverSpeedAlarm, new OverSpeedAlarm((byte) 66, 66));
+        attributes.put(AttributeKey.InOutAreaAlarm, new InOutAreaAlarm((byte) 77, 77, (byte) 77));
+        attributes.put(AttributeKey.RouteDriveTimeAlarm, new RouteDriveTimeAlarm(88, 88, (byte) 88));
 
-        attributes.put(AttributeId.Signal, 99L);
-        attributes.put(AttributeId.IoState, 10);
-        attributes.put(AttributeId.AnalogQuantity, 20L);
-        attributes.put(AttributeId.SignalStrength, 30);
-        attributes.put(AttributeId.GnssCount, 40);
+        attributes.put(AttributeKey.Signal, 99);
+        attributes.put(AttributeKey.IoState, 10);
+        attributes.put(AttributeKey.AnalogQuantity, 20);
+        attributes.put(AttributeKey.SignalStrength, 30);
+        attributes.put(AttributeKey.GnssCount, 40);
         bean.setAttributes(attributes);
         return bean;
     }

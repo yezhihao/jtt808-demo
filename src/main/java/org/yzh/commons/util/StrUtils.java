@@ -2,13 +2,11 @@ package org.yzh.commons.util;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author yezhihao
- * @home https://gitee.com/yezhihao/jt808-server
+ * https://gitee.com/yezhihao/jt808-server
  */
 public class StrUtils {
 
@@ -40,7 +38,7 @@ public class StrUtils {
         return result;
     }
 
-    public static String marge(String delimiter, Object... value) {
+    public static String merge(String delimiter, Object... value) {
         if (value == null || value.length == 0)
             return null;
 
@@ -52,7 +50,7 @@ public class StrUtils {
         return result.toString();
     }
 
-    public static String marge(String delimiter, int... value) {
+    public static String merge(String delimiter, int... value) {
         if (value == null || value.length == 0)
             return null;
 
@@ -84,6 +82,16 @@ public class StrUtils {
         return dest;
     }
 
+    public static Integer parseInt(String num) {
+        if (isBlank(num))
+            return null;
+        try {
+            return Integer.parseInt(num);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     public static String toUnderline(String str) {
         StringBuilder result = new StringBuilder(str.length() + 4);
         char[] chars = str.toCharArray();
@@ -93,7 +101,7 @@ public class StrUtils {
         for (int i = 1; i < chars.length; i++) {
             char c = chars[i];
             if (Character.isUpperCase(c))
-                result.append("_").append(Character.toLowerCase(c));
+                result.append('_').append(Character.toLowerCase(c));
             else
                 result.append(c);
         }
@@ -141,8 +149,40 @@ public class StrUtils {
         return result;
     }
 
+    public static Set<Integer> toSet(int... num) {
+        if (num == null || num.length == 0) {
+            return Collections.EMPTY_SET;
+        }
+        if (num.length == 1) {
+            return Collections.singleton(num[0]);
+        }
+        Set<Integer> result;
+        if (num.length <= 3) {
+            result = new TreeSet<>();
+        } else {
+            result = new HashSet<>(num.length << 1);
+        }
+        for (int i : num) {
+            result.add(i);
+        }
+        return result;
+    }
+
+    public static boolean isNum(String val) {
+        if (isBlank(val)) {
+            return false;
+        }
+        int sz = val.length();
+        for (int i = 0; i < sz; i++) {
+            if (!Character.isDigit(val.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static String getStackTrace(final Throwable throwable) {
-        final StringWriter sw = new StringWriter();
+        final StringWriter sw = new StringWriter(7680);
         final PrintWriter pw = new PrintWriter(sw, true);
         throwable.printStackTrace(pw);
         return sw.getBuffer().toString();
