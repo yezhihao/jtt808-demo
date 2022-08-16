@@ -11,10 +11,8 @@ import org.yzh.protocol.t808.*;
 import org.yzh.web.model.enums.SessionKey;
 import org.yzh.web.model.vo.DeviceInfo;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Base64;
 
 import static org.yzh.protocol.commons.JT808.*;
 
@@ -47,45 +45,40 @@ public class JT808Endpoint {
 
     @Mapping(types = 终端注册, desc = "终端注册")
     public T8100 register(T0100 message, Session session) {
-        DeviceInfo deviceInfo = new DeviceInfo();
-        deviceInfo.setIssuedAt(LocalDate.now());
-        deviceInfo.setDeviceId(message.getDeviceId());
-        deviceInfo.setClientId(message.getClientId());
-        deviceInfo.setPlateNo(message.getPlateNo());
-        deviceInfo.setPlateColor((byte) message.getPlateColor());
-
-        String token = Base64.getEncoder().encodeToString(DeviceInfo.toBytes(deviceInfo));
-
-        session.setAttribute(SessionKey.DeviceInfo, deviceInfo);
         session.register(message);
+        DeviceInfo deviceInfo = new DeviceInfo();
+        deviceInfo.setDeviceId(message.getDeviceId());
+        deviceInfo.setMobileNo(message.getClientId());
+        deviceInfo.setPlateNo(message.getPlateNo());
+        session.setAttribute(SessionKey.DeviceInfo, deviceInfo);
 
         T8100 result = new T8100();
         result.setResponseSerialNo(message.getSerialNo());
-        result.setToken(token);
+        result.setToken(message.getDeviceId() + "," + message.getPlateNo());
         result.setResultCode(T8100.Success);
         return result;
     }
 
     @Mapping(types = 终端鉴权, desc = "终端鉴权")
     public T0001 authentication(T0102 message, Session session) {
+        session.register(message);
+        DeviceInfo deviceInfo = new DeviceInfo();
+        String[] token = message.getToken().split(",");
+        deviceInfo.setMobileNo(message.getClientId());
+        deviceInfo.setDeviceId(token[0]);
+        if (token.length > 1)
+            deviceInfo.setPlateNo(token[1]);
+        session.setAttribute(SessionKey.DeviceInfo, deviceInfo);
+
         T0001 result = new T0001();
         result.setResponseSerialNo(message.getSerialNo());
         result.setResponseMessageId(message.getMessageId());
-
-        try {
-            DeviceInfo deviceInfo = DeviceInfo.formBytes(Base64.getDecoder().decode(message.getToken()));
-            session.setAttribute(SessionKey.DeviceInfo, deviceInfo);
-            session.register(message);
-            result.setResultCode(T0001.Success);
-        } catch (Exception e) {
-            log.error("token错误", e);
-            result.setResultCode(T0001.Failure);
-        }
+        result.setResultCode(T0001.Success);
         return result;
     }
 
     @Mapping(types = 位置信息汇报, desc = "位置信息汇报")
-    public void locationReport(T0200 t0200) {
+    public void locationReport(T0200 list) {
 
     }
 }

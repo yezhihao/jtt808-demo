@@ -5,6 +5,7 @@ import io.github.yezhihao.protostar.annotation.Message;
 import org.yzh.protocol.basics.JTMessage;
 import org.yzh.protocol.commons.JT808;
 import org.yzh.protocol.commons.transform.AttributeConverter;
+import org.yzh.protocol.commons.transform.AttributeConverterYue;
 
 import java.util.Map;
 
@@ -31,7 +32,8 @@ public class T0200 extends JTMessage {
     private int direction;
     @Field(length = 6, charset = "BCD", desc = "时间(YYMMDDHHMMSS)")
     private String dateTime;
-    @Field(desc = "位置附加信息", converter = AttributeConverter.class, version = {-1, 0})
+    @Field(converter = AttributeConverter.class, desc = "位置附加信息", version = {-1, 0})
+    @Field(converter = AttributeConverterYue.class, desc = "位置附加信息(粤标)", version = 1)
     private Map<Integer, Object> attributes;
 
     public int getWarnBit() {

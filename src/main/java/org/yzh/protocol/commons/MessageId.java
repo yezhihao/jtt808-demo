@@ -19,7 +19,7 @@ public class MessageId {
     private static final Map<Integer, Class> messageClass = new HashMap<>(256);
 
     static {
-        for (Class clazz : new Class[]{JT808.class}) {
+        for (Class clazz : new Class[]{JT808.class, JT1078.class, JSATL12.class}) {
             Field[] fields = clazz.getFields();
             for (Field field : fields) {
                 try {

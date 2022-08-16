@@ -81,7 +81,7 @@ public class MessageManager {
         return session.request(request, responseClass);
     }
 
-    private static void fillHeader(JTMessage request, Session session) {
+    public static <T extends JTMessage> T fillHeader(T request, Session session) {
         request.setClientId(session.getClientId());
         request.setSerialNo(session.nextSerialNo());
 
@@ -94,5 +94,6 @@ public class MessageManager {
         if (request.getMessageId() == 0) {
             request.setMessageId(request.reflectMessageId());
         }
+        return request;
     }
 }

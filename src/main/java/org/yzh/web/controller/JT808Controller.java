@@ -14,7 +14,7 @@ import org.yzh.web.endpoint.MessageManager;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("terminal")
+@RequestMapping("device")
 public class JT808Controller {
 
     @Autowired
@@ -22,24 +22,24 @@ public class JT808Controller {
 
     @Operation(summary = "8104 8106 查询终端参数")
     @GetMapping("parameters")
-    public Mono<APIResult<T0104>> getParameters(@Parameter(description = "终端手机号") @RequestParam String clientId,
+    public Mono<APIResult<T0104>> getParameters(@Parameter(description = "终端手机号") @RequestParam String mobileNo,
                                                 @Parameter(description = "参数ID列表(为空查询全部,多个以逗号','分隔)") int[] id) {
         JTMessage request = new JTMessage(JT808.查询终端参数);
-        Mono<APIResult<T0104>> response = messageManager.requestR(clientId, request, T0104.class);
+        Mono<APIResult<T0104>> response = messageManager.requestR(mobileNo, request, T0104.class);
         return response;
     }
 
     @Operation(summary = "8107 查询终端属性")
     @GetMapping("attributes")
-    public Mono<APIResult<T0107>> getAttributes(@Parameter(description = "终端手机号") @RequestParam String clientId) {
-        Mono<APIResult<T0107>> response = messageManager.requestR(clientId, new JTMessage(JT808.查询终端属性), T0107.class);
+    public Mono<APIResult<T0107>> getAttributes(@Parameter(description = "终端手机号") @RequestParam String mobileNo) {
+        Mono<APIResult<T0107>> response = messageManager.requestR(mobileNo, new JTMessage(JT808.查询终端属性), T0107.class);
         return response;
     }
 
     @Operation(summary = "8204 服务器向终端发起链路检测请求")
     @PostMapping("link_detection")
-    public Mono<APIResult<T0001>> link_detection(@Parameter(description = "终端手机号") @RequestParam String clientId) {
-        Mono<APIResult<T0001>> response = messageManager.requestR(clientId, new JTMessage(JT808.服务器向终端发起链路检测请求), T0001.class);
+    public Mono<APIResult<T0001>> link_detection(@Parameter(description = "终端手机号") @RequestParam String mobileNo) {
+        Mono<APIResult<T0001>> response = messageManager.requestR(mobileNo, new JTMessage(JT808.服务器向终端发起链路检测请求), T0001.class);
         return response;
     }
 }
