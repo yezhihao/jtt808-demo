@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 import org.yzh.commons.model.APIException;
 import org.yzh.commons.model.APIResult;
 import org.yzh.protocol.basics.JTMessage;
-import org.yzh.web.model.enums.SessionKey;
-import org.yzh.web.model.vo.DeviceInfo;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -24,10 +22,10 @@ public class MessageManager {
     private static final Logger log = LoggerFactory.getLogger(MessageManager.class);
 
     private static final Mono<Void> NEVER = Mono.never();
-    private static final Mono OFFLINE_EXCEPTION = Mono.error(new APIException(4000, "离线的客户端"));
-    private static final Mono OFFLINE_RESULT = Mono.just(new APIResult<>(4000, "离线的客户端"));
+    private static final Mono OFFLINE_EXCEPTION = Mono.error(new APIException(4000, "离线的客户端（请检查设备是否注册或者鉴权）"));
+    private static final Mono OFFLINE_RESULT = Mono.just(new APIResult<>(4000, "离线的客户端（请检查设备是否注册或者鉴权）"));
     private static final Mono SENDFAIL_RESULT = Mono.just(new APIResult<>(4001, "消息发送失败"));
-    private static final Mono TIMEOUT_RESULT = Mono.just(new APIResult<>(4002, "消息发送成功,客户端响应超时"));
+    private static final Mono TIMEOUT_RESULT = Mono.just(new APIResult<>(4002, "消息发送成功,客户端响应超时（至于设备为什么不应答，请联系设备厂商）"));
 
     private SessionManager sessionManager;
 
@@ -40,7 +38,6 @@ public class MessageManager {
         if (session == null)
             return OFFLINE_EXCEPTION;
 
-        fillHeader(request, session);
         return session.notify(request);
     }
 
@@ -49,7 +46,6 @@ public class MessageManager {
         if (session == null)
             return NEVER;
 
-        fillHeader(request, session);
         return session.notify(request);
     }
 
@@ -58,7 +54,6 @@ public class MessageManager {
         if (session == null)
             return OFFLINE_RESULT;
 
-        fillHeader(request, session);
         return session.request(request, responseClass)
                 .map(message -> APIResult.ok(message))
                 .timeout(Duration.ofSeconds(10), TIMEOUT_RESULT)
@@ -77,23 +72,6 @@ public class MessageManager {
         if (session == null)
             return OFFLINE_EXCEPTION;
 
-        fillHeader(request, session);
         return session.request(request, responseClass);
-    }
-
-    public static <T extends JTMessage> T fillHeader(T request, Session session) {
-        request.setClientId(session.getClientId());
-        request.setSerialNo(session.nextSerialNo());
-
-        DeviceInfo device = SessionKey.getDeviceInfo(session);
-        int protocolVersion = device.getProtocolVersion();
-        if (protocolVersion > 0) {
-            request.setVersion(true);
-            request.setProtocolVersion(protocolVersion);
-        }
-        if (request.getMessageId() == 0) {
-            request.setMessageId(request.reflectMessageId());
-        }
-        return request;
     }
 }

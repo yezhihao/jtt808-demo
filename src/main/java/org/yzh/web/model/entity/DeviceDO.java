@@ -1,18 +1,14 @@
-package org.yzh.web.model.vo;
+package org.yzh.web.model.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.yzh.protocol.commons.Charsets;
 
-import java.io.*;
 import java.time.LocalDate;
-
-import static io.github.yezhihao.protostar.util.DateTool.BCD;
 
 /**
  * @author yezhihao
  * https://gitee.com/yezhihao/jt808-server
  */
-public class DeviceInfo {
+public class DeviceDO {
 
     @Schema(description = "签发日期")
     protected LocalDate issuedAt;
@@ -37,10 +33,10 @@ public class DeviceInfo {
     @Schema(description = "协议版本")
     protected int protocolVersion;
 
-    public DeviceInfo() {
+    public DeviceDO() {
     }
 
-    public DeviceInfo(String mobileNo) {
+    public DeviceDO(String mobileNo) {
         this.mobileNo = mobileNo;
     }
 
@@ -132,44 +128,9 @@ public class DeviceInfo {
         this.protocolVersion = protocolVersion;
     }
 
-    public static DeviceInfo formBytes(byte[] bytes) {
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-             DataInputStream dis = new DataInputStream(bis)) {
-
-            DeviceInfo result = new DeviceInfo();
-            byte[] temp;
-            dis.read(temp = new byte[3]);
-            result.setIssuedAt(BCD.toDate(temp));
-            result.setReserved(dis.readByte());
-            int len = dis.readUnsignedByte();
-            dis.read(temp = new byte[len]);
-            result.setDeviceId(new String(temp, Charsets.GBK));
-
-            return result;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static byte[] toBytes(DeviceInfo deviceInfo) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(32);
-             DataOutputStream dos = new DataOutputStream(bos)) {
-
-            dos.write(BCD.from(deviceInfo.getIssuedAt()));
-            dos.writeByte(deviceInfo.getReserved());
-            byte[] bytes = deviceInfo.getDeviceId().getBytes(Charsets.GBK);
-            dos.writeByte(bytes.length);
-            dos.write(bytes);
-
-            return bos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("DeviceInfo{");
+        final StringBuilder sb = new StringBuilder("DeviceDO{");
         sb.append("issuedAt=").append(issuedAt);
         sb.append(", reserved=").append(reserved);
         sb.append(", deviceId=").append(deviceId);

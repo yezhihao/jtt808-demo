@@ -14,9 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.yzh.commons.model.APIResult;
 import org.yzh.commons.util.LogUtils;
 import org.yzh.protocol.codec.JTMessageDecoder;
-import org.yzh.protocol.codec.MultiPacketDecoder;
 import org.yzh.web.model.enums.SessionKey;
-import org.yzh.web.model.vo.DeviceInfo;
+import org.yzh.web.model.entity.DeviceDO;
 import reactor.core.publisher.Mono;
 
 import javax.servlet.http.HttpServletResponse;
@@ -37,7 +36,7 @@ public class OtherController {
 
     public OtherController(SessionManager sessionManager, SchemaManager schemaManager) {
         this.sessionManager = sessionManager;
-        this.decoder = new MultiPacketDecoder(schemaManager);
+        this.decoder = new JTMessageDecoder(schemaManager);
     }
 
     @Hidden
@@ -56,14 +55,14 @@ public class OtherController {
 
     @Operation(summary = "获得当前所有在线设备信息")
     @GetMapping("device/option")
-    public APIResult<List<DeviceInfo>> getClientId() {
+    public APIResult<List<DeviceDO>> getClientId() {
         Collection<Session> all = sessionManager.all();
-        List<DeviceInfo> result = all.stream().map(session -> {
-            DeviceInfo deviceInfo = SessionKey.getDeviceInfo(session);
-            if (deviceInfo != null)
-                return deviceInfo;
-            return new DeviceInfo(session.getClientId());
-        }).sorted(Comparator.comparing(DeviceInfo::getMobileNo)).collect(Collectors.toList());
+        List<DeviceDO> result = all.stream().map(session -> {
+            DeviceDO device = SessionKey.getDevice(session);
+            if (device != null)
+                return device;
+            return new DeviceDO(session.getClientId());
+        }).sorted(Comparator.comparing(DeviceDO::getMobileNo)).collect(Collectors.toList());
         return APIResult.ok(result);
     }
 
